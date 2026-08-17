@@ -8,4 +8,13 @@
     <edge id="E_out" from="TL1" to="E"   numLanes="1" speed="13.9"/>
     <edge id="W_in"  from="W"   to="TL1" numLanes="1" speed="13.9"/>
     <edge id="W_out" from="TL1" to="W"   numLanes="1" speed="13.9"/>
+    <!-- U-turn bypass edges (allow vehicles to make U-turns and re-enter from opposite direction) -->
+    <edge id="N_to_bypass"  from="N" to="N_bypass" numLanes="1" speed="13.9"/>
+    <edge id="bypass_to_S"  from="N_bypass" to="S" numLanes="1" speed="13.9"/>
+    <edge id="S_to_bypass"  from="S" to="S_bypass" numLanes="1" speed="13.9"/>
+    <edge id="bypass_to_N"  from="S_bypass" to="N" numLanes="1" speed="13.9"/>
+    <edge id="E_to_bypass"  from="E" to="E_bypass" numLanes="1" speed="13.9"/>
+    <edge id="bypass_to_W"  from="E_bypass" to="W" numLanes="1" speed="13.9"/>
+    <edge id="W_to_bypass"  from="W" to="W_bypass" numLanes="1" speed="13.9"/>
+    <edge id="bypass_to_E"  from="W_bypass" to="E" numLanes="1" speed="13.9"/>
 </edges>

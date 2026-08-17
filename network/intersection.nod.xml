@@ -5,4 +5,9 @@
     <node id="S" x="0" y="-200" type="priority"/>
     <node id="E" x="200" y="0" type="priority"/>
     <node id="W" x="-200" y="0" type="priority"/>
+    <!-- U-turn bypass nodes (for vehicles making U-turns) -->
+    <node id="N_bypass" x="0" y="350" type="priority"/>
+    <node id="S_bypass" x="0" y="-350" type="priority"/>
+    <node id="E_bypass" x="350" y="0" type="priority"/>
+    <node id="W_bypass" x="-350" y="0" type="priority"/>
 </nodes>
