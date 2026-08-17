@@ -66,3 +66,20 @@ python scripts/record_demo.py
 
 Xem chi tiết đầy đủ (ánh xạ yêu cầu, ghi chú/giới hạn) trong [REPORT.md](REPORT.md)
 và hướng dẫn sử dụng trong [HUONG_DAN_SU_DUNG.md](HUONG_DAN_SU_DUNG.md).
+
+## Tiến độ (10 yêu cầu)
+
+| # | Yêu cầu | Trạng thái |
+|---|---------|-----------|
+| 1 | Cài đặt SUMO/SUMO-GUI | ✅ |
+| 2 | Giao lộ 4 hướng | ✅ |
+| 3 | 20-50 xe | ✅ |
+| 4 | Đèn Đỏ-Vàng-Xanh tự động | ✅ |
+| 5 | Thay đổi chu kỳ/thời gian | ✅ |
+| 6 | Python + TraCI đọc đèn | ✅ |
+| 7 | Python gửi lệnh đèn | ✅ |
+| 8 | 3 kịch bản (normal/extended/emergency) | ✅ |
+| 9 | API ready: `set_traffic_light("TL1","GREEN",30)` | ✅ |
+| 10 | Báo cáo + code + ảnh + video 2-3 phút | ✅ |
+
+Xem chi tiết trong [PROGRESS.md](PROGRESS.md).
