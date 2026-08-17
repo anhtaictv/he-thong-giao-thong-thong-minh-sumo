@@ -10,19 +10,19 @@
 
     <!-- Lighter demand, GUI viewing only (req #1 visual check). See intersection.rou.xml
          for the 20-50 vehicle demand used for headless verification / report. -->
-    <flow id="N_S" type="carTypes" from="N_in" to="S_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="N_E" type="motorbike" from="N_in" to="E_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="N_W" type="carTypes" from="N_in" to="W_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="N_S" type="carTypes" from="N_in" to="S_out" begin="0" end="600" period="exp(360)"/>
+    <flow id="N_E" type="motorbike" from="N_in" to="E_out" begin="0" end="600" period="exp(360)"/>
+    <flow id="N_W" type="carTypes" from="N_in" to="W_out" begin="0" end="600" period="exp(360)"/>
 
-    <flow id="S_N" type="motorbike" from="S_in" to="N_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="S_E" type="carTypes" from="S_in" to="E_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="S_W" type="motorbike" from="S_in" to="W_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="S_N" type="motorbike" from="S_in" to="N_out" begin="0" end="600" period="exp(360)"/>
+    <flow id="S_E" type="carTypes" from="S_in" to="E_out" begin="0" end="600" period="exp(360)"/>
+    <flow id="S_W" type="motorbike" from="S_in" to="W_out" begin="0" end="600" period="exp(360)"/>
 
-    <flow id="E_W" type="carTypes" from="E_in" to="W_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="E_N" type="motorbike" from="E_in" to="N_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="E_S" type="carTypes" from="E_in" to="S_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="E_W" type="carTypes" from="E_in" to="W_out" begin="0" end="600" period="exp(360)"/>
+    <flow id="E_N" type="motorbike" from="E_in" to="N_out" begin="0" end="600" period="exp(360)"/>
+    <flow id="E_S" type="carTypes" from="E_in" to="S_out" begin="0" end="600" period="exp(360)"/>
 
-    <flow id="W_E" type="motorbike" from="W_in" to="E_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="W_N" type="carTypes" from="W_in" to="N_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="W_S" type="motorbike" from="W_in" to="S_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="W_E" type="motorbike" from="W_in" to="E_out" begin="0" end="600" period="exp(360)"/>
+    <flow id="W_N" type="carTypes" from="W_in" to="N_out" begin="0" end="600" period="exp(360)"/>
+    <flow id="W_S" type="motorbike" from="W_in" to="S_out" begin="0" end="600" period="exp(360)"/>
 </routes>

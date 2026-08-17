@@ -9,22 +9,22 @@
     <vType id="motorbike" vClass="motorcycle" guiShape="motorcycle" imgFile="cars/motorcycle.png" accel="3.5" decel="5" length="2.2" width="0.9" minGap="1.5" maxSpeed="16.7" sigma="0.6" color="0.9,0.2,0.1"/>
 
     <!-- From North -->
-    <flow id="N_S" type="carTypes" from="N_in" to="S_out" begin="0" end="300" vehsPerHour="40"/>
-    <flow id="N_E" type="motorbike" from="N_in" to="E_out" begin="0" end="300" vehsPerHour="40"/>
-    <flow id="N_W" type="carTypes" from="N_in" to="W_out" begin="0" end="300" vehsPerHour="40"/>
+    <flow id="N_S" type="carTypes" from="N_in" to="S_out" begin="0" end="600" period="exp(180)"/>
+    <flow id="N_E" type="motorbike" from="N_in" to="E_out" begin="0" end="600" period="exp(180)"/>
+    <flow id="N_W" type="carTypes" from="N_in" to="W_out" begin="0" end="600" period="exp(180)"/>
 
     <!-- From South -->
-    <flow id="S_N" type="motorbike" from="S_in" to="N_out" begin="0" end="300" vehsPerHour="40"/>
-    <flow id="S_E" type="carTypes" from="S_in" to="E_out" begin="0" end="300" vehsPerHour="40"/>
-    <flow id="S_W" type="motorbike" from="S_in" to="W_out" begin="0" end="300" vehsPerHour="40"/>
+    <flow id="S_N" type="motorbike" from="S_in" to="N_out" begin="0" end="600" period="exp(180)"/>
+    <flow id="S_E" type="carTypes" from="S_in" to="E_out" begin="0" end="600" period="exp(180)"/>
+    <flow id="S_W" type="motorbike" from="S_in" to="W_out" begin="0" end="600" period="exp(180)"/>
 
     <!-- From East -->
-    <flow id="E_W" type="carTypes" from="E_in" to="W_out" begin="0" end="300" vehsPerHour="40"/>
-    <flow id="E_N" type="motorbike" from="E_in" to="N_out" begin="0" end="300" vehsPerHour="40"/>
-    <flow id="E_S" type="carTypes" from="E_in" to="S_out" begin="0" end="300" vehsPerHour="40"/>
+    <flow id="E_W" type="carTypes" from="E_in" to="W_out" begin="0" end="600" period="exp(180)"/>
+    <flow id="E_N" type="motorbike" from="E_in" to="N_out" begin="0" end="600" period="exp(180)"/>
+    <flow id="E_S" type="carTypes" from="E_in" to="S_out" begin="0" end="600" period="exp(180)"/>
 
     <!-- From West -->
-    <flow id="W_E" type="motorbike" from="W_in" to="E_out" begin="0" end="300" vehsPerHour="40"/>
-    <flow id="W_N" type="carTypes" from="W_in" to="N_out" begin="0" end="300" vehsPerHour="40"/>
-    <flow id="W_S" type="motorbike" from="W_in" to="S_out" begin="0" end="300" vehsPerHour="40"/>
+    <flow id="W_E" type="motorbike" from="W_in" to="E_out" begin="0" end="600" period="exp(180)"/>
+    <flow id="W_N" type="carTypes" from="W_in" to="N_out" begin="0" end="600" period="exp(180)"/>
+    <flow id="W_S" type="motorbike" from="W_in" to="S_out" begin="0" end="600" period="exp(180)"/>
 </routes>
