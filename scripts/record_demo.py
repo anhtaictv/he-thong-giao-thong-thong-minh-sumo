@@ -21,6 +21,7 @@ import tls_control as tls
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 CFG = os.path.join(BASE, "..", "intersection_light.sumocfg")
+VIEW_SETTINGS = os.path.join(BASE, "view_settings.xml")
 MEDIA_DIR = os.path.join(BASE, "..", "media")
 FRAMES_DIR = os.path.join(MEDIA_DIR, "frames")
 END_TIME = 150
@@ -42,13 +43,15 @@ HIGHLIGHTS = {
 def main():
     os.makedirs(FRAMES_DIR, exist_ok=True)
     binary = sumolib.checkBinary("sumo-gui")
-    traci.start([binary, "-c", CFG, "--no-step-log", "true", "--start", "true"])
+    traci.start([binary, "-c", CFG, "--no-step-log", "true", "--start", "true",
+                 "--gui-settings-file", VIEW_SETTINGS])
     traci.trafficlight.setProgram("TL1", "1")
     traci.gui.setZoom("View #0", 600)
 
     frame_paths = []
     extended = False
     emergency = False
+    t = 0
     try:
         while traci.simulation.getTime() < END_TIME:
             traci.simulationStep()
@@ -69,8 +72,12 @@ def main():
             if t in HIGHLIGHTS:
                 highlight_path = os.path.join(MEDIA_DIR, f"{HIGHLIGHTS[t]}.png")
                 traci.gui.screenshot("View #0", highlight_path)
+
+        # screenshot() writes asynchronously on the next render; step once more
+        # so the final frame requested above is actually flushed to disk.
+        traci.simulationStep()
     except traci.exceptions.FatalTraCIError as exc:
-        print(f"GUI connection dropped at t={traci.simulation.getTime()}: {exc}")
+        print(f"GUI connection dropped at t={t}: {exc}")
     finally:
         try:
             traci.close()
@@ -78,6 +85,7 @@ def main():
             pass
 
     print(f"Captured {len(frame_paths)} frames")
+    frame_paths = [p for p in frame_paths if os.path.exists(p)]
     if not frame_paths:
         print("No frames captured, nothing to assemble.")
         return
