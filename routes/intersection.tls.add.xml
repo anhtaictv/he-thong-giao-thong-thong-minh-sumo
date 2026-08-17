@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<additional>
+    <!-- Editable copy of the netconvert-generated program for TL1.
+         Edit phase "duration" values here to change the light cycle/timing (req #5)
+         without touching network topology. Loaded as an additional file so it
+         overrides the copy embedded in intersection.net.xml. -->
+    <tlLogic id="TL1" type="static" programID="1" offset="0">
+        <phase duration="42" state="GGggrrrrGGggrrrr"/>
+        <phase duration="3"  state="yyyyrrrryyyyrrrr"/>
+        <phase duration="42" state="rrrrGGggrrrrGGgg"/>
+        <phase duration="3"  state="rrrryyyyrrrryyyy"/>
+    </tlLogic>
+</additional>

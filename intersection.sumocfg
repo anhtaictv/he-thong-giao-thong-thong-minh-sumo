@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <input>
+        <net-file value="network/intersection.net.xml"/>
+        <route-files value="routes/intersection.rou.xml"/>
+        <additional-files value="routes/intersection.tls.add.xml"/>
+    </input>
+    <time>
+        <begin value="0"/>
+        <end value="600"/>
+    </time>
+    <random>
+        <seed value="42"/>
+    </random>
+</configuration>
