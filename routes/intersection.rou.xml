@@ -9,6 +9,20 @@
     <vType id="motorbike" vClass="motorcycle" guiShape="motorcycle" imgFile="cars/motorcycle.png" accel="3.5" decel="5" length="2.2" width="0.9" minGap="1.5" maxSpeed="16.7" sigma="0.6" color="0.9,0.2,0.1"/>
     <vTypeDistribution id="allTypes" vTypes="sedan suv taxi truck bus motorbike"/>
 
+    <!-- U-turn routes (vehicles make U-turn then turn left/right/straight, may yield to oncoming traffic) -->
+    <route id="N_S_uturn_straight" edges="N_in N_out N_to_bypass bypass_to_S S_in S_out"/>
+    <route id="N_S_uturn_right" edges="N_in N_out N_to_bypass bypass_to_S S_in E_out"/>
+    <route id="N_S_uturn_left" edges="N_in N_out N_to_bypass bypass_to_S S_in W_out"/>
+    <route id="S_N_uturn_straight" edges="S_in S_out S_to_bypass bypass_to_N N_in N_out"/>
+    <route id="S_N_uturn_right" edges="S_in S_out S_to_bypass bypass_to_N N_in E_out"/>
+    <route id="S_N_uturn_left" edges="S_in S_out S_to_bypass bypass_to_N N_in W_out"/>
+    <route id="E_W_uturn_straight" edges="E_in E_out E_to_bypass bypass_to_W W_in W_out"/>
+    <route id="E_W_uturn_right" edges="E_in E_out E_to_bypass bypass_to_W W_in N_out"/>
+    <route id="E_W_uturn_left" edges="E_in E_out E_to_bypass bypass_to_W W_in S_out"/>
+    <route id="W_E_uturn_straight" edges="W_in W_out W_to_bypass bypass_to_E E_in E_out"/>
+    <route id="W_E_uturn_right" edges="W_in W_out W_to_bypass bypass_to_E E_in N_out"/>
+    <route id="W_E_uturn_left" edges="W_in W_out W_to_bypass bypass_to_E E_in S_out"/>
+
     <!-- From North -->
     <flow id="N_S" type="allTypes" from="N_in" to="S_out" begin="0" end="600" period="exp(180)"/>
     <flow id="N_E" type="allTypes" from="N_in" to="E_out" begin="0" end="600" period="exp(180)"/>
@@ -28,4 +42,14 @@
     <flow id="W_E" type="allTypes" from="W_in" to="E_out" begin="0" end="600" period="exp(180)"/>
     <flow id="W_N" type="allTypes" from="W_in" to="N_out" begin="0" end="600" period="exp(180)"/>
     <flow id="W_S" type="allTypes" from="W_in" to="S_out" begin="0" end="600" period="exp(180)"/>
+
+    <!-- U-turn flows (lower frequency, creates natural conflicts) -->
+    <flow id="N_uturn" type="allTypes" route="N_S_uturn_right" begin="0" end="600" period="exp(600)"/>
+    <flow id="N_uturn_left" type="allTypes" route="N_S_uturn_left" begin="0" end="600" period="exp(600)"/>
+    <flow id="S_uturn" type="allTypes" route="S_N_uturn_right" begin="0" end="600" period="exp(600)"/>
+    <flow id="S_uturn_left" type="allTypes" route="S_N_uturn_left" begin="0" end="600" period="exp(600)"/>
+    <flow id="E_uturn" type="allTypes" route="E_W_uturn_right" begin="0" end="600" period="exp(600)"/>
+    <flow id="E_uturn_left" type="allTypes" route="E_W_uturn_left" begin="0" end="600" period="exp(600)"/>
+    <flow id="W_uturn" type="allTypes" route="W_E_uturn_right" begin="0" end="600" period="exp(600)"/>
+    <flow id="W_uturn_left" type="allTypes" route="W_E_uturn_left" begin="0" end="600" period="exp(600)"/>
 </routes>
