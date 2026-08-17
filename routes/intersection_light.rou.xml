@@ -1,23 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <routes>
-    <vType id="car" vClass="passenger" guiShape="passenger" accel="2.6" decel="4.5" length="5" width="1.8" minGap="2.5" maxSpeed="13.9" sigma="0.5" color="0,0.4,0.9"/>
+    <vType id="sedan" vClass="passenger" guiShape="passenger/sedan" imgFile="cars/sedan.png" length="4.8" width="1.8" accel="2.6" decel="4.5" maxSpeed="13.9" color="40,120,220"/>
+    <vType id="suv" vClass="passenger" guiShape="passenger/van" imgFile="cars/suv.png" length="5.0" width="1.9" accel="2.3" decel="4.5" maxSpeed="13.9" color="220,50,50"/>
+    <vType id="taxi" vClass="taxi" guiShape="taxi" imgFile="cars/taxi.png" length="4.8" width="1.8" accel="2.6" decel="4.5" maxSpeed="13.9" color="240,190,20"/>
+    <vType id="truck" vClass="truck" guiShape="truck" imgFile="cars/truck.png" length="7.0" width="2.4" accel="1.3" decel="4.0" maxSpeed="11.1" color="80,80,80"/>
+    <vTypeDistribution id="carTypes" vTypes="sedan suv taxi truck"/>
     <vType id="motorbike" vClass="motorcycle" guiShape="motorcycle" accel="3.5" decel="5" length="2.2" width="0.9" minGap="1.5" maxSpeed="16.7" sigma="0.6" color="0.9,0.2,0.1"/>
 
     <!-- Lighter demand, GUI viewing only (req #1 visual check). See intersection.rou.xml
          for the 20-50 vehicle demand used for headless verification / report. -->
-    <flow id="N_S" type="car" from="N_in" to="S_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="N_S" type="carTypes" from="N_in" to="S_out" begin="0" end="300" vehsPerHour="10"/>
     <flow id="N_E" type="motorbike" from="N_in" to="E_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="N_W" type="car" from="N_in" to="W_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="N_W" type="carTypes" from="N_in" to="W_out" begin="0" end="300" vehsPerHour="10"/>
 
     <flow id="S_N" type="motorbike" from="S_in" to="N_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="S_E" type="car" from="S_in" to="E_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="S_E" type="carTypes" from="S_in" to="E_out" begin="0" end="300" vehsPerHour="10"/>
     <flow id="S_W" type="motorbike" from="S_in" to="W_out" begin="0" end="300" vehsPerHour="10"/>
 
-    <flow id="E_W" type="car" from="E_in" to="W_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="E_W" type="carTypes" from="E_in" to="W_out" begin="0" end="300" vehsPerHour="10"/>
     <flow id="E_N" type="motorbike" from="E_in" to="N_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="E_S" type="car" from="E_in" to="S_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="E_S" type="carTypes" from="E_in" to="S_out" begin="0" end="300" vehsPerHour="10"/>
 
     <flow id="W_E" type="motorbike" from="W_in" to="E_out" begin="0" end="300" vehsPerHour="10"/>
-    <flow id="W_N" type="car" from="W_in" to="N_out" begin="0" end="300" vehsPerHour="10"/>
+    <flow id="W_N" type="carTypes" from="W_in" to="N_out" begin="0" end="300" vehsPerHour="10"/>
     <flow id="W_S" type="motorbike" from="W_in" to="S_out" begin="0" end="300" vehsPerHour="10"/>
 </routes>
