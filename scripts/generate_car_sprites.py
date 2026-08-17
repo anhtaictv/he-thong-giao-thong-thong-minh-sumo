@@ -1,42 +1,44 @@
 from PIL import Image, ImageDraw
+import os
+
+CANVAS_W = 256
+CANVAS_H = 512
 
 
-WIDTH = 256
-HEIGHT = 512
-
-
-def create_car(filename, body_width=150, body_length=400,
-                body_color=(180, 180, 180, 255), roof_color=None):
-    """
-    Tạo sprite xe nhìn từ trên xuống.
-    Nền trong suốt. Màu thân xe tùy chỉnh qua body_color, mui xe tối hơn
-    thân xe một mức trừ khi truyền roof_color riêng.
-    """
-
+def save_vehicle(
+    filename,
+    body_w,
+    body_h,
+    body_color=(180, 180, 180, 255),
+    roof_color=None,
+    roof_ratio=0.55,
+    wheel_w=25,
+    wheel_h=70,
+    bus=False,
+    truck=False,
+    motorcycle=False,
+):
     if roof_color is None:
         r, g, b, a = body_color
-        roof_color = (max(r - 60, 0), max(g - 60, 0), max(b - 60, 0), a)
+        roof_color = (max(r - 90, 0), max(g - 90, 0), max(b - 90, 0), a)
 
     img = Image.new(
         "RGBA",
-        (WIDTH, HEIGHT),
+        (CANVAS_W, CANVAS_H),
         (0, 0, 0, 0)
     )
 
     draw = ImageDraw.Draw(img)
 
-    cx = WIDTH // 2
+    cx = CANVAS_W // 2
 
-    left = cx - body_width // 2
-    right = cx + body_width // 2
+    left = cx - body_w // 2
+    right = cx + body_w // 2
 
-    top = (HEIGHT - body_length) // 2
-    bottom = top + body_length
+    top = (CANVAS_H - body_h) // 2
+    bottom = top + body_h
 
-    # -----------------------------
-    # Bóng xe
-    # -----------------------------
-
+    # Shadow
     draw.rounded_rectangle(
         (
             left + 8,
@@ -44,14 +46,58 @@ def create_car(filename, body_width=150, body_length=400,
             right + 8,
             bottom + 10
         ),
-        radius=35,
-        fill=(0, 0, 0, 70)
+        radius=30,
+        fill=(0, 0, 0, 60)
     )
 
-    # -----------------------------
-    # Thân xe
-    # -----------------------------
+    if motorcycle:
 
+        draw.rounded_rectangle(
+            (
+                cx - 18,
+                top + 40,
+                cx + 18,
+                bottom - 40
+            ),
+            radius=12,
+            fill=body_color
+        )
+
+        draw.ellipse(
+            (
+                cx - 35,
+                top + 30,
+                cx + 35,
+                top + 100
+            ),
+            fill=(40, 40, 40, 255)
+        )
+
+        draw.ellipse(
+            (
+                cx - 35,
+                bottom - 100,
+                cx + 35,
+                bottom - 30
+            ),
+            fill=(40, 40, 40, 255)
+        )
+
+        draw.line(
+            (
+                cx - 30,
+                top + 80,
+                cx + 30,
+                top + 50
+            ),
+            fill=(120, 120, 120, 255),
+            width=8
+        )
+
+        img.save(filename)
+        return
+
+    # Body
     draw.rounded_rectangle(
         (
             left,
@@ -63,112 +109,72 @@ def create_car(filename, body_width=150, body_length=400,
         fill=body_color
     )
 
-    # -----------------------------
-    # Mui xe
-    # -----------------------------
-
-    roof_top = top + 105
-    roof_bottom = bottom - 100
+    roof_top = top + int(body_h * 0.25)
+    roof_bottom = roof_top + int(body_h * roof_ratio)
 
     draw.rounded_rectangle(
         (
-            left + 15,
+            left + 18,
             roof_top,
-            right - 15,
+            right - 18,
             roof_bottom
         ),
-        radius=28,
+        radius=25,
         fill=roof_color
     )
 
-    # -----------------------------
-    # Kính trước
-    # -----------------------------
-
+    # windshield
     draw.polygon(
         [
             (left + 25, roof_top + 20),
             (right - 25, roof_top + 20),
             (right - 35, roof_top + 90),
-            (left + 35, roof_top + 90),
+            (left + 35, roof_top + 90)
         ],
-        fill=(210, 225, 235, 220)
+        fill=(230, 230, 230, 220)
     )
 
-    # -----------------------------
-    # Kính sau
-    # -----------------------------
-
+    # rear glass
     draw.polygon(
         [
             (left + 35, roof_bottom - 90),
             (right - 35, roof_bottom - 90),
             (right - 25, roof_bottom - 20),
-            (left + 25, roof_bottom - 20),
+            (left + 25, roof_bottom - 20)
         ],
-        fill=(190, 210, 225, 220)
+        fill=(220, 220, 220, 220)
     )
 
-    # -----------------------------
-    # Gương
-    # -----------------------------
-
-    draw.ellipse(
-        (
-            left - 14,
-            roof_top + 40,
-            left + 8,
-            roof_top + 75
-        ),
-        fill=(70, 70, 70, 255)
-    )
-
-    draw.ellipse(
-        (
-            right - 8,
-            roof_top + 40,
-            right + 14,
-            roof_top + 75
-        ),
-        fill=(70, 70, 70, 255)
-    )
-
-    # -----------------------------
-    # Đèn trước
-    # -----------------------------
-
+    # headlights
     draw.rounded_rectangle(
         (
-            left + 20,
-            top + 18,
+            left + 15,
+            top + 15,
             left + 55,
-            top + 42
+            top + 40
         ),
         radius=8,
-        fill=(245, 245, 220, 255)
+        fill=(255, 255, 255, 255)
     )
 
     draw.rounded_rectangle(
         (
             right - 55,
-            top + 18,
-            right - 20,
-            top + 42
+            top + 15,
+            right - 15,
+            top + 40
         ),
         radius=8,
-        fill=(245, 245, 220, 255)
+        fill=(255, 255, 255, 255)
     )
 
-    # -----------------------------
-    # Đèn sau
-    # -----------------------------
-
+    # tail lights
     draw.rounded_rectangle(
         (
-            left + 20,
-            bottom - 42,
+            left + 15,
+            bottom - 40,
             left + 55,
-            bottom - 18
+            bottom - 15
         ),
         radius=8,
         fill=(180, 30, 30, 255)
@@ -177,81 +183,107 @@ def create_car(filename, body_width=150, body_length=400,
     draw.rounded_rectangle(
         (
             right - 55,
-            bottom - 42,
-            right - 20,
-            bottom - 18
+            bottom - 40,
+            right - 15,
+            bottom - 15
         ),
         radius=8,
         fill=(180, 30, 30, 255)
     )
 
-    # -----------------------------
-    # Bánh xe
-    # -----------------------------
+    # wheels
+    wheel_positions = [
+        top + 90,
+        bottom - 170
+    ]
 
-    wheel_w = 25
-    wheel_h = 70
-
-    for y in [
-        top + 95,
-        bottom - 165
-    ]:
+    for y in wheel_positions:
 
         draw.rounded_rectangle(
             (
-                left - 12,
+                left - 10,
                 y,
-                left + wheel_w - 12,
+                left + wheel_w,
                 y + wheel_h
             ),
-            radius=10,
-            fill=(25, 25, 25, 255)
+            radius=8,
+            fill=(40, 40, 40, 255)
         )
 
         draw.rounded_rectangle(
             (
-                right - wheel_w + 12,
+                right - wheel_w,
                 y,
-                right + 12,
+                right + 10,
                 y + wheel_h
             ),
-            radius=10,
-            fill=(25, 25, 25, 255)
+            radius=8,
+            fill=(40, 40, 40, 255)
+        )
+
+    if bus:
+
+        for i in range(6):
+            x1 = left + 25 + i * 25
+
+            draw.rectangle(
+                (
+                    x1,
+                    top + 110,
+                    x1 + 18,
+                    top + 160
+                ),
+                fill=(240, 240, 240, 255)
+            )
+
+    if truck:
+
+        draw.rectangle(
+            (
+                left + 10,
+                top + 120,
+                right - 10,
+                bottom - 90
+            ),
+            outline=(100, 100, 100, 255),
+            width=4
         )
 
     img.save(filename)
 
 
-# Mỗi loại xe một màu thân xe riêng để phân biệt trong media/vehicles/.
-CAR_TYPES = {
-    "sedan": {"body_width": 150, "body_length": 400, "body_color": (60, 90, 180, 255)},   # xanh dương
-    "suv":   {"body_width": 175, "body_length": 410, "body_color": (60, 140, 70, 255)},   # xanh lá
-    "taxi":  {"body_width": 150, "body_length": 400, "body_color": (235, 200, 40, 255)},  # vàng
-    "truck": {"body_width": 180, "body_length": 470, "body_color": (150, 40, 40, 255)},   # đỏ
+# Mỗi loại xe một màu riêng, khớp với color="..." trong vType (routes/*.rou.xml).
+VEHICLE_TYPES = {
+    "sedan":      {"body_w": 150, "body_h": 390, "body_color": (50, 100, 220, 255)},
+    "suv":        {"body_w": 180, "body_h": 420, "body_color": (220, 60, 60, 255)},
+    "taxi":       {"body_w": 150, "body_h": 390, "body_color": (255, 200, 40, 255)},
+    "bus":        {"body_w": 190, "body_h": 470, "body_color": (50, 180, 50, 255), "bus": True},
+    "truck":      {"body_w": 190, "body_h": 500, "body_color": (120, 120, 120, 255), "truck": True},
+    "motorcycle": {"body_w": 60, "body_h": 260, "body_color": (180, 50, 180, 255), "motorcycle": True},
 }
 
 
 def demo():
-    import os
     import tempfile
 
     with tempfile.TemporaryDirectory() as tmp:
-        for name, kwargs in CAR_TYPES.items():
+        for name, kwargs in VEHICLE_TYPES.items():
             path = os.path.join(tmp, f"{name}.png")
-            create_car(path, **kwargs)
+            save_vehicle(path, **kwargs)
             assert os.path.exists(path), f"{name} sprite was not created"
             with Image.open(path) as img:
-                assert img.size == (WIDTH, HEIGHT), f"{name} sprite has wrong size"
+                assert img.size == (CANVAS_W, CANVAS_H), f"{name} sprite has wrong size"
     print("demo() OK: all sprites generated with correct size")
 
 
-if __name__ == "__main__":
-    import os
-
-    out_dir = os.path.join(os.path.dirname(__file__), "..", "media", "vehicles")
+def generate(out_dir):
     os.makedirs(out_dir, exist_ok=True)
+    for name, kwargs in VEHICLE_TYPES.items():
+        save_vehicle(os.path.join(out_dir, f"{name}.png"), **kwargs)
+    print(f"Generated {len(VEHICLE_TYPES)} vehicle sprites in {out_dir}")
 
-    for name, kwargs in CAR_TYPES.items():
-        create_car(os.path.join(out_dir, f"{name}.png"), **kwargs)
 
+if __name__ == "__main__":
+    out_dir = os.path.join(os.path.dirname(__file__), "..", "routes", "cars")
+    generate(out_dir)
     demo()
