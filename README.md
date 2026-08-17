@@ -1,6 +1,6 @@
 # Khảo sát, xây dựng hệ thống giao thông thông minh bằng SUMO
 
-**Phiên bản:** 0.1.0
+![version](https://img.shields.io/badge/version-0.1.0-blue)
 
 Mô phỏng một giao lộ 4 nhánh (Bắc–Nam–Đông–Tây) với đèn tín hiệu tự động bằng
 [Eclipse SUMO](https://eclipse.dev/sumo/), điều khiển qua TraCI (Python) — phục vụ
