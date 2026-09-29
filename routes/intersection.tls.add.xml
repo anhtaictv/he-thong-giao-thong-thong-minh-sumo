@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <additional>
-    <!-- Editable copy of the netconvert-generated program for TL1.
-         Edit phase "duration" values here to change the light cycle/timing (req #5)
-         without touching network topology. Loaded as an additional file so it
-         overrides the copy embedded in intersection.net.xml. -->
+    <!-- Chương trình đèn có thể chỉnh sửa của TL1 (yêu cầu #5).
+         Sửa các giá trị "duration" để đổi thời gian từng pha / tổng chu kỳ.
+         Mặc định: chu kỳ 94s = Xanh 42 + Vàng 3 + Đỏ toàn phần 2 (x2 hướng).
+
+         Thứ tự 12 ký tự trong state (linkIndex):
+           0-2  : Bắc  (N_in)  phải / thẳng / trái
+           3-5  : Đông (E_in)  phải / thẳng / trái
+           6-8  : Nam  (S_in)  phải / thẳng / trái
+           9-11 : Tây  (W_in)  phải / thẳng / trái
+         G = xanh ưu tiên, g = xanh phải nhường (rẽ trái), y = vàng, r = đỏ -->
     <tlLogic id="TL1" type="static" programID="1" offset="0">
-        <phase duration="42" state="GGggrrrrGGggrrrr"/>
-        <phase duration="3"  state="yyyyrrrryyyyrrrr"/>
-        <phase duration="42" state="rrrrGGggrrrrGGgg"/>
-        <phase duration="3"  state="rrrryyyyrrrryyyy"/>
+        <phase duration="42" state="GGgrrrGGgrrr" name="NS_GREEN"/>
+        <phase duration="3"  state="yyyrrryyyrrr" name="NS_YELLOW"/>
+        <phase duration="2"  state="rrrrrrrrrrrr" name="ALL_RED_1"/>
+        <phase duration="42" state="rrrGGgrrrGGg" name="EW_GREEN"/>
+        <phase duration="3"  state="rrryyyrrryyy" name="EW_YELLOW"/>
+        <phase duration="2"  state="rrrrrrrrrrrr" name="ALL_RED_2"/>
     </tlLogic>
 </additional>

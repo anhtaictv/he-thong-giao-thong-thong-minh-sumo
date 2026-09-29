@@ -110,36 +110,30 @@
 
 ---
 
-## 📁 Cấu trúc File Deliverable
+## 📁 Cấu trúc File Deliverable (cập nhật v0.2.0)
 
 ```
 he-thong-giao-thong-thong-minh-sumo/
-├── README.md                    # Overview + quick start
-├── PROGRESS.md                  # Chi tiết 10 yêu cầu
-├── TIEN_DO_NHOM.md             # Timeline & phân công (đây)
-├── REPORT.md                    # Báo cáo kỹ thuật chi tiết
-├── HUONG_DAN_SU_DUNG.md         # Hướng dẫn + API reference
-│
+├── README.md, REPORT.md, PROGRESS.md, TIEN_DO_NHOM.md
+├── HUONG_DAN_SU_DUNG.md, HUONG_DAN_CHE_DO_DEN.md
+├── intersection.sumocfg / intersection_light.sumocfg
 ├── network/
-│   ├── intersection.nod.xml     # 9 nút giao lộ
-│   ├── intersection.edg.xml     # 12 cạnh
-│   ├── intersection.net.xml     # Network compiled (netconvert)
-│   └── intersection.tls.add.xml # TLS manual config
-│
+│   ├── intersection.nod.xml     # 5 nút (TL1 + N/S/E/W)
+│   ├── intersection.edg.xml     # 8 cạnh vào/ra
+│   └── intersection.net.xml     # mạng đã biên dịch (netconvert)
 ├── routes/
-│   ├── intersection.rou.xml           # Traffic + U-turn flows
-│   └── intersection_light.rou.xml     # Đèn giao thông
-│
+│   ├── intersection.rou.xml         # 36 xe, 6 loại
+│   ├── intersection_light.rou.xml   # 36 xe dồn ~4 phút (GUI / video)
+│   ├── intersection.tls.add.xml     # chu kỳ đèn chỉnh được
+│   └── cars/                        # ảnh xe
 ├── scripts/
-│   ├── tls_control.py           # TraCI control logic
-│   ├── scenarios.py             # 3 scenario (normal, extended, emergency)
-│   └── view_settings.xml        # GUI settings
-│
-├── media/
-│   ├── demo.gif                 # Demo video (2.5 phút)
-│   └── screenshots/             # Ảnh chụp GUI
-│
-└── .git/                        # GitHub repo
+│   ├── tls_control.py, command_interface.py, safety_guard.py
+│   ├── scenarios.py, run_simulation.py, send_command.py
+│   ├── check_requirements.py, record_demo.py, generate_car_sprites.py
+│   └── view_settings.xml
+└── media/
+    ├── demo.mp4 (2:25), demo.gif
+    └── 01_normal.png … 08_resumed.png
 ```
 
 ---
@@ -186,3 +180,18 @@ he-thong-giao-thong-thong-minh-sumo/
 ---
 
 **Lưu ý:** File này được tạo để báo cáo tiến độ cho giảng viên hướng dẫn. Mọi câu hỏi vui lòng liên hệ Tạ Anh Tài (lead).
+
+---
+
+## 🔧 Cập nhật 29/09/2026 — v0.2.0 (sửa sau rà soát yêu cầu)
+
+Khi rà soát lại theo đề bài, nhóm phát hiện một số yêu cầu chưa đạt thật sự ở bản v0.1.0:
+
+- **#3:** `period="exp(180)"` sinh 180 xe/giây, khiến mô phỏng treo.
+- **#9:** lệnh GREEN bỏ qua thời gian, và chưa có cổng nhận lệnh từ bên ngoài.
+- **#8:** kịch bản "nguy hiểm" chưa phải lệnh nguy hiểm.
+- **#10:** GIF và ảnh bị hỏng, chưa có video.
+
+Tất cả đã được sửa trong v0.2.0. Xem chi tiết ở `PROGRESS.md` và mục 9 của `REPORT.md`.
+Kết quả tự kiểm tra: `python scripts/check_requirements.py` → **13/13 đạt**.
+

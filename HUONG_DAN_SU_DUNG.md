@@ -1,95 +1,109 @@
 # Hướng dẫn sử dụng — Mô phỏng giao lộ SUMO
 
-## 1. Yêu cầu cài đặt
+## 1. Cài đặt
 
 ```bash
-pip install eclipse-sumo sumolib traci
-```
-
-Kiểm tra cài đặt đúng:
-```bash
+pip install eclipse-sumo traci sumolib pillow
 sumo --version
 sumo-gui --version
 ```
 
+Nếu muốn quay lại video bằng `record_demo.py`, cần thêm `ffmpeg`. Trên Windows có thể cài
+bằng `pip install imageio-ffmpeg`, script sẽ tự tìm.
+
+Mọi lệnh bên dưới chạy từ **thư mục gốc của dự án** (thư mục chứa `intersection.sumocfg`).
+
 ## 2. Cấu trúc thư mục
 
 ```
-network/    → định nghĩa node/cạnh + net.xml biên dịch (netconvert)
-routes/     → luồng xe (.rou.xml) và chương trình đèn có thể chỉnh (.tls.add.xml)
-scripts/    → mã Python điều khiển (tls_control.py, scenarios.py, run_simulation.py, record_demo.py)
-media/      → ảnh + GIF demo đã ghi sẵn
-intersection.sumocfg        → cấu hình chạy đầy đủ (~48 xe)
-intersection_light.sumocfg  → cấu hình nhẹ (~10 xe), dùng khi xem GUI cho mượt
-REPORT.md   → báo cáo kỹ thuật chi tiết, ánh xạ từng yêu cầu
+network/    → định nghĩa nút/cạnh + intersection.net.xml đã biên dịch
+routes/     → luồng xe (.rou.xml), chương trình đèn chỉnh được (.tls.add.xml), ảnh xe (cars/)
+scripts/    → mã Python (xem bảng trong README.md)
+media/      → video demo.mp4, demo.gif, ảnh chụp các mốc
+intersection.sumocfg        → cấu hình chính (36 xe, ~10 phút)
+intersection_light.sumocfg  → cùng 36 xe dồn trong ~4 phút (xem GUI / quay video)
 ```
 
-## 3. Chạy mô phỏng (dòng lệnh)
-
-Đứng ở thư mục gốc `D:\App\SUMO`, chạy:
+## 3. Tự kiểm tra yêu cầu
 
 ```bash
-# Headless (không giao diện) — nhanh, dùng để kiểm chứng logic
-python scripts/run_simulation.py --scenario normal
-python scripts/run_simulation.py --scenario extended_green
-python scripts/run_simulation.py --scenario emergency
-
-# Có giao diện đồ họa (SUMO-GUI), dùng bộ dữ liệu nhẹ cho mượt
-python scripts/run_simulation.py --scenario emergency --gui --light
+python scripts/check_requirements.py
 ```
 
-Tham số:
+Chương trình chạy mô phỏng không giao diện và in bảng ĐẠT / KHÔNG ĐẠT cho các yêu cầu 1–9.
+
+## 4. Chạy các tình huống
+
+```bash
+python scripts/run_simulation.py --scenario normal           # 1. giao thông bình thường
+python scripts/run_simulation.py --scenario extended_green   # 2. tăng thời gian đèn xanh
+python scripts/run_simulation.py --scenario dangerous        # 3. lệnh bất thường / nguy hiểm
+python scripts/run_simulation.py --scenario emergency        #    xe cứu thương + đỏ toàn bộ
+```
+
 | Cờ | Ý nghĩa |
 |---|---|
-| `--scenario` | `normal` / `extended_green` / `emergency` (mặc định `normal`) |
-| `--gui` | mở SUMO-GUI thay vì chạy ẩn |
-| `--light` | dùng `intersection_light.sumocfg` (~10 xe) thay vì bộ đầy đủ (~48 xe) — chỉ nên dùng chung với `--gui` |
+| `--scenario` | `normal`, `extended_green`, `dangerous`, `emergency`, `demo`, `interactive` |
+| `--gui` | mở SUMO-GUI (tự phóng to vào giao lộ) |
+| `--light` | dùng `intersection_light.sumocfg` (xe dày hơn, hợp để xem GUI) |
+| `--delay 200` | độ trễ mỗi bước trên GUI (ms), số càng lớn chạy càng chậm |
+| `--server --port 9000` | bật cổng nhận lệnh TCP (tự bật với `interactive`) |
+| `--realtime` | 1 giây mô phỏng = 1 giây thực |
+| `--max-time 300` | dừng tại giây thứ 300 |
+| `--unsafe` | TẮT safety guard (chỉ để minh họa hậu quả của lệnh nguy hiểm) |
+| `--verbose` | in mọi lần đổi pha đèn |
 
-3 kịch bản:
-- **normal**: chương trình đèn chạy mặc định, không can thiệp.
-- **extended_green**: tại t=100s, tự động kéo dài pha đèn hiện tại thêm 20s.
-- **emergency**: tại t=150s, ép toàn bộ đèn về đỏ trong 15s (mô phỏng nhường đường xe ưu tiên), sau đó tự khôi phục chương trình bình thường.
+Khi kết thúc, chương trình in số xe, số va chạm, số lệnh bị chặn, và kiểm tra số xe có nằm
+trong khoảng 20–50 hay không.
 
-Chương trình tự kiểm tra: tổng số xe vào mạng phải nằm trong khoảng 20–60, nếu sai sẽ báo lỗi ngay (`assert`).
+## 5. Gửi lệnh từ bên ngoài (chuẩn bị cho Agent Guard)
 
-## 4. Xem GUI trực quan trên máy thật
-
-Chạy trực tiếp trên máy cá nhân (ngoài môi trường sandbox/Claude Code, vì cửa sổ SUMO-GUI ở đó không ổn định):
+Cửa sổ 1, chạy mô phỏng và chờ lệnh:
 
 ```bash
-python scripts/run_simulation.py --scenario emergency --gui --light
+python scripts/run_simulation.py --scenario interactive --gui --light
 ```
 
-Muốn quay video màn hình thật, dùng phần mềm quay màn hình song song lúc chạy lệnh trên.
+Cửa sổ 2, gửi lệnh:
 
-## 5. Xem demo có sẵn (ảnh + GIF)
+```bash
+python scripts/send_command.py "set_traffic_light('TL1','GREEN',30)"
+python scripts/send_command.py "set_traffic_light('TL1','GREEN',20,'E')"
+python scripts/send_command.py "get_traffic_light_state('TL1')"
+python scripts/send_command.py "{\"command\":\"set_traffic_light\",\"args\":[\"TL1\",\"RED\",10]}"
+python scripts/send_command.py          # chế độ gõ lệnh liên tục
+```
 
-Không cần chạy lại SUMO — mở trực tiếp:
-- `media/demo.gif` — toàn bộ kịch bản: giao thông bình thường → mở rộng đèn xanh (t=40s) → lệnh khẩn cấp ép đỏ 10s (t=90s) → khôi phục.
-- `media/01_start.png` … `media/07_resumed.png` — 7 ảnh chụp các mốc quan trọng.
+Mỗi lệnh nhận về một phản hồi JSON, ví dụ `{"ok": true, "message": "Xanh hướng Bắc-Nam trong 30s"}`
+hoặc `{"ok": false, "blocked": true, "error": "BỊ CHẶN bởi safety guard: ..."}`.
 
-Muốn tạo lại (ghi đè) bộ ảnh/GIF:
+Giao thức rất đơn giản: TCP `127.0.0.1:9000`, mỗi dòng một lệnh (UTF-8), mỗi phản hồi một dòng
+JSON. Agent Guard có thể dùng bất kỳ ngôn ngữ nào để gửi lệnh.
+
+## 6. Đổi chu kỳ đèn
+
+- **Trước khi chạy:** sửa `duration` trong `routes/intersection.tls.add.xml`. Không cần biên dịch lại mạng.
+- **Khi đang chạy:** gửi lệnh `set_cycle("TL1", 60, 30)` (xanh Bắc-Nam 60s, xanh Đông-Tây 30s),
+  hoặc `extend_current_phase("TL1", 20)` để kéo dài pha đang chạy.
+
+## 7. Quay lại video và ảnh demo
+
 ```bash
 python scripts/record_demo.py
+# Linux không màn hình:
+xvfb-run -a -s "-screen 0 1400x1000x24" python scripts/record_demo.py
 ```
 
-## 6. Điều khiển đèn bằng Python (API cho Agent Guard)
+Kết quả được ghi vào `media/`: `demo.mp4` (~2,5 phút), `demo.gif`, và `01_…png` đến `08_…png`.
 
-Trong `scripts/tls_control.py`:
+## 8. Sửa mạng giao lộ
 
-```python
-get_traffic_light_state("TL1")        # đọc trạng thái đèn hiện tại (state, phase, program, next_switch)
-set_traffic_light("TL1", "GREEN", 30) # RED/YELLOW: ép toàn bộ đèn về màu đó N giây rồi tự khôi phục
-                                       # GREEN: khôi phục chương trình bình thường ngay
-extend_current_phase("TL1", 20)       # kéo dài pha đang chạy thêm N giây
+Nếu sửa `network/intersection.nod.xml` hoặc `.edg.xml`, cần biên dịch lại:
+
+```bash
+netconvert -n network/intersection.nod.xml -e network/intersection.edg.xml \
+           --no-turnarounds true --tls.yellow.time 3 -o network/intersection.net.xml
 ```
 
-Lưu ý: `set_traffic_light` là API đơn trục (điều khiển toàn bộ nút, không tách riêng từng hướng) — an toàn cho tình huống khẩn cấp, chưa hỗ trợ lệnh theo từng nhánh riêng lẻ.
-
-## 7. Đổi chu kỳ đèn thủ công
-
-Sửa số giây trong `routes/intersection.tls.add.xml` (chương trình `programID="1"`), sau đó chạy lại mô phỏng — không cần biên dịch lại `network/`.
-
-## 8. Đọc thêm
-
-Xem `REPORT.md` để biết kiến trúc tổng quan, bảng ánh xạ từng yêu cầu đề bài, và các giới hạn đã biết (ví dụ GUI không ổn định trong môi trường tự động).
+Nếu số làn hoặc số hướng thay đổi, cần cập nhật lại chuỗi `state` trong
+`routes/intersection.tls.add.xml` và `APPROACH_LINKS` trong `scripts/tls_control.py`.

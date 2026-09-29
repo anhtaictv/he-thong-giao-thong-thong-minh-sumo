@@ -1,113 +1,206 @@
 # Báo cáo: Mô phỏng giao lộ thông minh bằng Eclipse SUMO (phục vụ tích hợp Agent Guard)
 
-## 1. Kiến trúc tổng quan
+Phiên bản 0.2.0 — kiểm thử với Eclipse SUMO 1.27.1, Python 3.11.
+
+## 1. Mục tiêu
+
+Xây dựng một giao lộ 4 hướng có đèn tín hiệu và phương tiện lưu thông trên SUMO, quan sát
+được trực quan trên SUMO-GUI, và điều khiển được đèn từ Python qua TraCI. Chuẩn bị sẵn một
+cổng nhận lệnh đơn giản dạng `set_traffic_light("TL1","GREEN",30)` để sau này Agent Guard
+gửi lệnh vào và kiểm duyệt lệnh.
+
+## 2. Kiến trúc
 
 ```
-                     ┌──────────────────────────┐
-                     │   network/*.nod/edg.xml   │  (tự viết, 5 node: TL1 + N/S/E/W)
-                     └────────────┬─────────────┘
-                                  │ netconvert
-                                  ▼
-                     ┌──────────────────────────┐
-                     │  network/intersection.net.xml  │ (topology + TLS tự sinh)
-                     └────────────┬─────────────┘
-                                  │
-        routes/intersection*.rou.xml ──┤
-        routes/intersection.tls.add.xml┤──►  intersection*.sumocfg ──► sumo / sumo-gui
-                                  │                                        │
-                                  │                                    TraCI (socket)
-                                  │                                        │
-                                  │                          scripts/tls_control.py
-                                  │                        (get/set traffic light state)
-                                  │                                        │
-                                  └──────────────────────────►  scripts/scenarios.py
-                                                                (normal / extended_green / emergency)
-                                                                        │
-                                                                scripts/run_simulation.py (CLI)
-                                                                scripts/record_demo.py (ảnh + GIF)
+                ┌───────────────────────── SUMO / SUMO-GUI ─────────────────────────┐
+                │  intersection.net.xml   intersection.rou.xml   intersection.tls.add.xml
+                │   (giao lộ TL1)          (36 xe, 6 loại)        (chu kỳ đèn "1")      │
+                └──────────────────────────────▲────────────────────────────────────┘
+                                               │ TraCI (socket)
+   ┌───────────────────────────────────────────┴──────────────────────────────────┐
+   │ tls_control.py   get_traffic_light_state · set_traffic_light · extend_current_phase
+   │                  set_cycle · set_state (lệnh thô) · resume_program · tick      │
+   └───────────────────────────────────────────▲──────────────────────────────────┘
+                                               │ chỉ gọi khi lệnh được phép
+   ┌───────────────────────────────────────────┴──────────────────────────────────┐
+   │ safety_guard.py  chặn: hai trục cùng xanh · rẽ trái ưu tiên đối đầu luồng thẳng │
+   │                  · Xanh→Đỏ không qua Vàng   (Agent Guard sẽ thay thế/bổ sung)  │
+   └───────────────────────────────────────────▲──────────────────────────────────┘
+                                               │
+   ┌───────────────────────────────────────────┴──────────────────────────────────┐
+   │ command_interface.py  phân tích lệnh văn bản / JSON bằng ast (không eval),      │
+   │                       ghi nhật ký, máy chủ TCP 127.0.0.1:9000                   │
+   └─────────▲──────────────────────────────▲─────────────────────────────────────┘
+             │ lệnh định sẵn                 │ lệnh từ bên ngoài
+      scenarios.py                    send_command.py / Agent Guard
+      run_simulation.py · check_requirements.py · record_demo.py
 ```
 
-Một giao lộ 4 nhánh (Bắc–Nam–Đông–Tây) tại nút `TL1`, mỗi nhánh 1 làn, dài 200m.
-`netconvert` tự sinh chương trình đèn Đỏ–Vàng–Xanh (2 pha chính NS/EW + pha vàng chuyển
-tiếp) vì suy đoán state-string bằng tay dễ sai. Python điều khiển đèn qua TraCI (giao thức
-socket chuẩn của SUMO) chứ không sửa trực tiếp file trong lúc chạy.
+Nguyên tắc thiết kế:
 
-## 2. Cấu trúc file
+- Python không sửa file khi mô phỏng đang chạy. Mọi thay đổi đi qua TraCI.
+- Lệnh cấp cao (`set_traffic_light`) luôn tự chèn Vàng 3s rồi Đỏ toàn phần 2s khi đổi hướng.
+  Vì vậy lệnh hợp lệ không bao giờ gây chuyển Xanh→Đỏ đột ngột.
+- Chỉ lệnh thô `set_state` mới có thể tạo trạng thái nguy hiểm. Lệnh này luôn phải qua
+  `safety_guard` trước. `command_interface.set_validator(fn)` là chỗ để Agent Guard gắn bộ
+  kiểm duyệt của mình.
 
-| File | Vai trò |
+## 3. Mô hình giao lộ và nhu cầu giao thông
+
+| Thành phần | Mô tả |
 |---|---|
-| `network/intersection.nod.xml`, `.edg.xml` | Định nghĩa 5 node và 8 cạnh (vào/ra 4 hướng) |
-| `network/intersection.net.xml` | Mạng lưới đã biên dịch (netconvert), gồm TLS tự sinh |
-| `routes/intersection.rou.xml` | Nhu cầu giao thông chính: 12 luồng (mọi cặp hướng vào/ra), ~48 xe/5 phút, trộn `car` (ô tô) và `motorbike` (xe máy) |
-| `routes/intersection_light.rou.xml` | Bản nhu cầu nhẹ (~10 xe) chỉ để xem GUI mượt |
-| `routes/intersection.tls.add.xml` | Bản sao có thể chỉnh sửa của chương trình đèn (programID `1`) — sửa số ở đây để đổi chu kỳ/thời gian đèn (yêu cầu #5) |
-| `intersection.sumocfg` / `intersection_light.sumocfg` | Cấu hình chạy (net + route + additional + seed cố định 42) |
-| `scripts/tls_control.py` | Lớp điều khiển TraCI: `get_traffic_light_state()`, `set_traffic_light(tls_id, color, duration)`, `extend_current_phase()`, `tick()` |
-| `scripts/scenarios.py` | 3 kịch bản minh họa (yêu cầu #8) |
-| `scripts/run_simulation.py` | CLI chạy 1 kịch bản: `--scenario`, `--gui`, `--light` |
-| `scripts/record_demo.py` | Chụp ảnh + dựng GIF demo bằng `traci.gui.screenshot()` |
+| Nút | `TL1` (đèn tín hiệu) tại tâm; `N`, `S`, `E`, `W` cách 200 m |
+| Cạnh | `N_in/N_out`, `S_in/S_out`, `E_in/E_out`, `W_in/W_out` — 1 làn, 50 km/h |
+| Liên kết đèn | 12 link: mỗi hướng có rẽ phải / đi thẳng / rẽ trái (thứ tự N, E, S, W) |
+| Chu kỳ đèn | Xanh B-N 42s → Vàng 3s → Đỏ toàn phần 2s → Xanh Đ-T 42s → Vàng 3s → Đỏ toàn phần 2s (94s) |
+| Phương tiện | 12 luồng × 3 xe = **36 xe** (sedan, SUV, taxi, xe tải, xe buýt, xe máy), đến theo phân phối Poisson |
+| Xe ưu tiên | 1 xe cứu thương (`vClass=emergency`), chỉ thêm trong kịch bản `emergency` / `demo` |
 
-## 3. Ánh xạ yêu cầu
+Lưu ý kỹ thuật: trong SUMO, `period="exp(X)"` nghĩa là trung bình **X xe/giây**, không phải
+"1 xe mỗi X giây". Bản 0.1.0 viết `exp(180)`, tức 180 xe/giây cho mỗi luồng. Kết quả là hơn
+345.000 xe được nạp và mô phỏng bị treo. Bản này dùng `exp(0.012)` kèm `number="3"`, nên số xe
+luôn là 36 với mọi seed.
 
-| # | Yêu cầu | Đáp ứng |
-|---|---|---|
-| 1 | Cài đặt & chạy SUMO/SUMO-GUI | Cài qua pip (`eclipse-sumo`), xác nhận `sumo.exe`/`sumo-gui.exe` chạy được |
-| 2 | Giao lộ 4 hướng B-N-Đ-T | `network/intersection.nod.xml` + `.edg.xml`, nút `TL1` |
-| 3 | 20–50 xe | 12 luồng trong `intersection.rou.xml` → 48 xe/lượt chạy (đã đo thực tế, ổn định nhờ seed) |
-| 4 | Đèn Đỏ-Vàng-Xanh tự động | TLS tự sinh bởi netconvert, chạy độc lập không cần can thiệp |
-| 5 | Đổi chu kỳ/thời gian đèn | `routes/intersection.tls.add.xml` (sửa tay, chương trình `1`) + `extend_current_phase()` (runtime) |
-| 6 | Python + TraCI đọc trạng thái đèn | `tls_control.get_traffic_light_state()` |
-| 7 | Python gửi lệnh đổi đèn | `tls_control.set_traffic_light()`, `extend_current_phase()` |
-| 8 | 3 tình huống minh họa | `scenarios.run_normal / run_extended_green / run_emergency` — đã kiểm chứng bằng log console |
-| 9 | Nhận lệnh dạng đơn giản | `set_traffic_light("TL1","GREEN",30)` — đúng chữ ký, sẵn sàng cho Agent Guard gọi sau |
+## 4. Ánh xạ yêu cầu
 
-## 4. Cách chạy
+| # | Yêu cầu | Đáp ứng | Kiểm chứng |
+|---|---|---|---|
+| 1 | Cài đặt, chạy SUMO/SUMO-GUI | `pip install eclipse-sumo`; `run_simulation.py --gui` | `check_requirements.py` in phiên bản SUMO; video quay từ SUMO-GUI |
+| 2 | Giao lộ 4 hướng | `network/*.nod.xml`, `*.edg.xml` → `netconvert` | kiểm tra đủ 8 cạnh + đèn `TL1` |
+| 3 | 20–50 xe | 36 xe (+1 xe cứu thương) | `run_simulation.py` báo "ĐẠT" / thoát mã 1 nếu sai |
+| 4 | Đèn Đỏ–Vàng–Xanh tự động | `intersection.tls.add.xml` | kiểm tra có đủ G/y/r và không có Xanh→Đỏ trực tiếp |
+| 5 | Thay đổi chu kỳ / thời gian đèn | (a) sửa `duration` trong XML; (b) `extend_current_phase()`; (c) `set_cycle()` khi đang chạy | next_switch tăng đúng 20s; logic mới có pha 30s/50s |
+| 6 | Python đọc trạng thái đèn | `get_traffic_light_state()` trả về state, màu từng hướng, pha, thời gian còn lại, chế độ | so khớp `GGgrrrGGgrrr` → Bắc/Nam xanh |
+| 7 | Python gửi lệnh đổi trạng thái / thời gian | `set_traffic_light()`, `extend_current_phase()`, `set_cycle()` | GREEN hướng Đông: `yyy…` → `rrr…` → `rrrGGGrrrrrr` |
+| 8 | 3 tình huống minh họa | `normal`, `extended_green`, `dangerous` (+ `emergency`, `demo`) | log console mục 6 |
+| 9 | Nhận lệnh `set_traffic_light("TL1","GREEN",30)` từ bên ngoài | `command_interface.execute()` + TCP :9000 + `send_command.py`; hỗ trợ cả JSON | xanh kéo dài đúng 30s; gửi thử qua TCP thành công |
+| 10 | Báo cáo, source, ảnh, video 2–3 phút | tài liệu này, `media/demo.mp4` (2:25), `demo.gif`, 8 ảnh | mục 7 |
 
-```bash
-# Chạy đúng bộ dữ liệu chính (headless, nhanh, dùng để kiểm chứng)
-python scripts/run_simulation.py --scenario normal
-python scripts/run_simulation.py --scenario extended_green
-python scripts/run_simulation.py --scenario emergency
+## 5. API điều khiển đèn
 
-# Xem trực quan (tải nhẹ, khuyến nghị chạy trên máy thật, ngoài môi trường sandbox)
-python scripts/run_simulation.py --scenario emergency --gui --light
+```python
+get_traffic_light_state("TL1")
+# {'state': 'GGgrrrGGgrrr', 'directions': {'N':'GREEN','E':'RED','S':'GREEN','W':'RED'},
+#  'phase': 0, 'phase_name': 'NS_GREEN', 'remaining': 37.0, 'mode': 'AUTO', ...}
 
-# Chụp ảnh + dựng GIF demo
-python scripts/record_demo.py
+set_traffic_light("TL1", "GREEN", 30)          # xanh trục đang/sắp chạy đúng 30s
+set_traffic_light("TL1", "GREEN", 30, "EW")    # xanh trục Đông-Tây 30s
+set_traffic_light("TL1", "GREEN", 20, "E")     # chỉ hướng Đông xanh 20s (xe cứu thương)
+set_traffic_light("TL1", "RED", 10)            # đỏ toàn bộ 10s
+set_traffic_light("TL1", "YELLOW", 10)         # vàng cảnh báo toàn bộ 10s
+extend_current_phase("TL1", 20)                # kéo dài pha hiện tại 20s
+set_cycle("TL1", green_ns=60, green_ew=30)     # đổi chu kỳ khi đang chạy
+set_state("TL1", "GGgrrrGGgrrr", 10)           # lệnh thô — luôn qua safety_guard
+resume_program("TL1")                          # quay lại chu kỳ tự động
 ```
 
-Mỗi lần chạy `run_simulation.py` tự kiểm tra: tổng số xe đã vào mạng phải nằm trong
-khoảng 20–60 (khớp yêu cầu #3), nếu sai lệch sẽ báo lỗi ngay — đây là bài kiểm tra tối
-thiểu đi kèm logic (`assert` trong `run_simulation.py`).
+Mọi tham số đều được kiểm tra: `duration` phải nằm trong 1–120s; ID đèn phải tồn tại; màu
+chỉ gồm GREEN/YELLOW/RED; hướng chỉ gồm N/S/E/W/NS/EW. Sau khi hết thời gian lệnh, đèn tự quay
+về chu kỳ tự động và có chuyển tiếp an toàn.
 
-## 5. Ghi chú / giới hạn
+Lệnh từ bên ngoài (mỗi dòng một lệnh, mỗi phản hồi là một dòng JSON):
 
-- **`set_traffic_light` là API đơn trục** (không điều khiển riêng từng hướng): `"RED"`/`"YELLOW"`
-  ép toàn bộ đèn về màu đó trong `duration` giây (an toàn — mô phỏng ưu tiên xe khẩn cấp),
-  `"GREEN"` khôi phục chương trình bình thường. Điều khiển theo từng hướng cụ thể sẽ làm
-  sau khi Agent Guard định nghĩa lược đồ lệnh thật.
-- **SUMO-GUI trong môi trường tự động (Claude Code) không ổn định**: cửa sổ GUI do TraCI
-  điều khiển bị ngắt kết nối sau một khoảng thời gian thực không cố định, dù dữ liệu/logic
-  mô phỏng đã được xác nhận đúng nhiều lần qua bản headless (không giao diện). Đây là giới
-  hạn của phiên hiển thị ảo trong sandbox, không phải lỗi trong mã nguồn. Ảnh/GIF trong
-  `media/` được chụp qua `traci.gui.screenshot()` (chụp nội bộ trong tiến trình SUMO, không
-  cần công cụ chụp màn hình ngoài) với bản dữ liệu nhẹ để tăng độ ổn định.
-- Để có video màn hình thật (không phải GIF ghép từ ảnh chụp), nên tự chạy
-  `python scripts/run_simulation.py --scenario emergency --gui` trực tiếp trên máy cá nhân
-  (ngoài môi trường này) và dùng phần mềm quay màn hình.
+```text
+set_traffic_light("TL1","GREEN",30)
+{"command": "set_traffic_light", "args": ["TL1", "RED", 10]}
+{"command": "set_traffic_light", "params": {"tls_id": "TL1", "color": "GREEN", "duration": 20, "direction": "E"}}
+```
 
-## 6. Ảnh chụp & video demo
+## 6. Kết quả các tình huống (log rút gọn)
 
-Đã tạo bằng `scripts/record_demo.py` (bản nhu cầu nhẹ, 44 khung hình sau khi loại bỏ khung
-đầu bị hỏng do chụp lúc SUMO-GUI chưa vẽ xong, phát lại ~2,35 phút — khớp yêu cầu 2-3 phút):
+**Tình huống 1: bình thường** (`--scenario normal`). Chu kỳ 94s chạy tự động, 36 xe, 0 va chạm.
 
-- `media/demo.gif` — GIF động toàn bộ quá trình: giao thông bình thường → mở rộng đèn xanh
-  (t=40s) → lệnh khẩn cấp ép đèn đỏ toàn bộ 10s (t=90s) → khôi phục bình thường.
-- `media/01_start.png` … `media/07_resumed.png` — 7 ảnh chụp mốc quan trọng (đèn xanh
-  NS, sau khi mở rộng, đèn xanh EW, ép đỏ khẩn cấp, giữ đỏ, khôi phục). Ô tô hiển thị hình
-  mũi tên xanh dương, xe máy hình tam giác nhỏ đỏ/cam/vàng — phân biệt rõ hai loại xe.
+```
+t=     1s  [AUTO  ] NS_GREEN    còn  41.0s | Bắc=GREEN  Nam=GREEN  Đông=RED    Tây=RED
+t=    43s  [AUTO  ] NS_YELLOW   còn   2.0s | Bắc=YELLOW Nam=YELLOW Đông=RED    Tây=RED
+t=    46s  [AUTO  ] ALL_RED_1   còn   1.0s | Bắc=RED    Nam=RED    Đông=RED    Tây=RED
+t=    48s  [AUTO  ] EW_GREEN    còn  41.0s | Bắc=RED    Nam=RED    Đông=GREEN  Tây=GREEN
+```
 
-## 7. Source code
+**Tình huống 2: tăng thời gian đèn xanh** (`--scenario extended_green`)
 
-Toàn bộ mã nguồn nằm trong thư mục dự án (`network/`, `routes/`, `scripts/`,
-`intersection*.sumocfg`) — xem trực tiếp trong repo, không lặp lại nội dung ở đây.
+```
+t=    30s  >>> extend_current_phase("TL1", 20)       [OK] Kéo dài pha hiện tại thêm 20s
+t=    63s  [AUTO  ] NS_YELLOW   (xanh Bắc-Nam kéo dài từ 42s lên 62s)
+t=   150s  >>> set_traffic_light("TL1", "GREEN", 30)  [OK] Xanh hướng Bắc-Nam trong 30s
+t=   181s  [AUTO  ] NS_YELLOW   (xanh giữ đúng 30s kể từ lệnh)
+t=   250s  >>> set_cycle("TL1", 60, 30)               [OK] Chu kỳ mới 100s
+t=   316s  [AUTO  ] EW_GREEN    còn  29.0s  … NS_GREEN còn 59.0s
+```
+
+**Tình huống 3: lệnh bất thường / nguy hiểm** (`--scenario dangerous`)
+
+```
+t=   100s  >>> set_state("TL1", "GGGGGGGGGGGG", 20)
+            [CHẶN] trục Bắc-Nam và Đông-Tây cùng xanh (các luồng cắt nhau) (+4 vi phạm khác)
+t=   104s  >>> set_state("TL1", "rrrrrrrrrrrr", 10)
+            [CHẶN] chuyển Xanh -> Đỏ đột ngột không qua Vàng
+t=   106s  >>> set_traffic_light("TL1", "GREEN", 999)   [LỖI] duration=999s ngoài phạm vi [1, 120]
+t=   108s  >>> set_traffic_light("TL9", "GREEN", 30)    [LỖI] không tồn tại đèn 'TL9'
+t=   110s  >>> set_traffic_light("TL1", "BLUE", 30)     [LỖI] màu 'BLUE' không hợp lệ
+t=   112s  >>> __import__("os").system("echo hacked")    [LỖI] lệnh phải có dạng ten_lenh(tham_so, ...)
+```
+
+Chạy với `--unsafe` (tắt guard), lệnh xanh mọi hướng được áp dụng. Log cảnh báo
+`!!! NGUY HIỂM` mỗi giây, và SUMO ghi nhận **va chạm thật trong giao lộ**
+(`junction collision … collisions: 2`). Đây là minh chứng vì sao cần một lớp kiểm duyệt như
+Agent Guard.
+
+**Tình huống bổ sung: xe cứu thương** (`--scenario emergency`)
+
+```
+t=   140s  >>> Xe cứu thương 'ambulance_1' xuất hiện ở hướng Đông
+t=   142s  >>> set_traffic_light("TL1", "GREEN", 25, "E")
+t=   142s  [MANUAL] YELLOW   | Bắc=RED Nam=RED Đông=GREEN Tây=YELLOW
+t=   145s  [MANUAL] ALL_RED  | Bắc=RED Nam=RED Đông=GREEN Tây=RED
+t=   147s  [MANUAL] E_ONLY   | chỉ hướng Đông xanh 25s
+t=   177s  [AUTO  ] NS_GREEN  (tự quay về chu kỳ)
+t=   200s  >>> set_traffic_light("TL1", "RED", 15)    → Vàng 3s → Đỏ toàn phần 15s → tự khôi phục
+```
+
+**Tự kiểm tra** (`python scripts/check_requirements.py`): **13/13 kiểm tra đạt**.
+
+## 7. Ảnh chụp và video demo
+
+`scripts/record_demo.py` chạy kịch bản `demo` trên SUMO-GUI. Script chụp từng bước bằng
+`traci.gui.screenshot()`, ghép bảng thông tin (đèn 4 hướng, chế độ, lệnh vừa gửi, cảnh báo) vào
+khung hình, rồi xuất:
+
+| File | Nội dung |
+|---|---|
+| `media/demo.mp4` | Video 2 phút 25 giây, 1280×720 (chạy nhanh ×2 so với thời gian mô phỏng) |
+| `media/demo.gif` | Bản thu nhỏ để xem trong README |
+| `media/01_normal.png` | Giao thông bình thường |
+| `media/02_extended_green.png` | Sau khi kéo dài pha xanh |
+| `media/03_green_command.png` | Lệnh `set_traffic_light("TL1","GREEN",30)` |
+| `media/04_dangerous_blocked.png` | Lệnh xanh mọi hướng bị guard chặn |
+| `media/05_unsafe_all_green.png` | Khi tắt guard: mọi hướng cùng xanh, cảnh báo nguy hiểm |
+| `media/06_ambulance_east.png` | Chỉ hướng Đông xanh cho xe cứu thương |
+| `media/07_all_red.png` | Đỏ toàn bộ giao lộ |
+| `media/08_resumed.png` | Khôi phục chu kỳ tự động |
+
+Nội dung video: giới thiệu → bình thường → tăng xanh → lệnh GREEN 30s → lệnh nguy hiểm bị chặn
+→ tắt guard (mọi hướng xanh) → xe cứu thương hướng Đông → đỏ toàn bộ → khôi phục.
+
+## 8. Giới hạn và hướng phát triển
+
+- `safety_guard.py` mới là bộ kiểm tra tối thiểu dựa trên luật cố định. Agent Guard sẽ thay nó
+  qua `command_interface.set_validator(fn)`. Nên bổ sung xác thực nguồn lệnh, giới hạn tần suất
+  và kiểm tra theo ngữ cảnh (ví dụ số xe đang chờ).
+- Cổng TCP chỉ lắng nghe trên `127.0.0.1` và chưa có xác thực, nên chỉ dùng trong môi trường thử nghiệm.
+- Mỗi nhánh có 1 làn và rẽ trái dùng "xanh phải nhường" (`g`). Có thể mở rộng thành nhiều làn
+  với pha rẽ trái riêng.
+
+## 9. Các thay đổi so với bản 0.1.0
+
+| Vấn đề ở bản 0.1.0 | Cách sửa |
+|---|---|
+| `exp(180)` khiến hơn 345.000 xe được nạp, mô phỏng treo, GUI hay bị ngắt | Sửa tốc độ đến thành `exp(0.012)` + `number="3"` → 36 xe cố định |
+| Làn "quay đầu" (`bypass_to_*`) cắt thẳng qua tâm giao lộ, xe đi xuyên đèn | Bỏ các nút/cạnh bypass; `netconvert --no-turnarounds` |
+| `set_traffic_light("TL1","GREEN",30)` bỏ qua tham số 30 | GREEN giữ xanh đúng `duration`, hỗ trợ hướng N/S/E/W/NS/EW |
+| RED/YELLOW chuyển thẳng Xanh→Đỏ, không qua Vàng | Tự chèn Vàng 3s + Đỏ toàn phần 2s |
+| Chưa có cổng nhận lệnh từ bên ngoài | `command_interface.py` (văn bản/JSON, TCP) + `send_command.py` |
+| Kịch bản "nguy hiểm" thực chất là lệnh an toàn (đỏ toàn bộ) | Thêm kịch bản `dangerous` với các lệnh nguy hiểm thật + `safety_guard` |
+| Không đổi được chu kỳ khi đang chạy | Thêm `set_cycle()` |
+| `demo.gif`, `01_start.png` hỏng (1×1 pixel), không có video | Viết lại `record_demo.py`: `demo.mp4` 2:25, GIF, 8 ảnh mốc |
+| Tài liệu lệch với code (số nút/cạnh, số xe, số khung hình) | Viết lại README, REPORT, hướng dẫn |

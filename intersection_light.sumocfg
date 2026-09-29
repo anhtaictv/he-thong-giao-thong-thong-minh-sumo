@@ -7,7 +7,6 @@
     </input>
     <time>
         <begin value="0"/>
-        <end value="600"/>
     </time>
     <random>
         <seed value="42"/>
