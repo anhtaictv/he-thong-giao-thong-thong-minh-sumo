@@ -98,12 +98,24 @@ Kết quả được ghi vào `media/`: `demo.mp4` (~2,5 phút), `demo.gif`, và
 
 ## 8. Sửa mạng giao lộ
 
-Nếu sửa `network/intersection.nod.xml` hoặc `.edg.xml`, cần biên dịch lại:
+Mỗi chiều có 3 làn:
+- Đoạn xa giao lộ (`*_far_in` / `*_far_out`, 100m) chia làn theo **loại xe**: làn 0 xe máy,
+  làn 1 ô tô con/taxi, làn 2 xe tải/xe buýt (xe cứu thương đi mọi làn).
+- Đoạn sát giao lộ (`*_in` / `*_out`, 100m) là làn chung, chia theo **hướng rẽ**: làn 0 rẽ phải + thẳng,
+  làn 1 thẳng, làn 2 thẳng + rẽ trái (`intersection.con.xml`). Xe tự chuyển làn trước khi vào giao lộ,
+  nhờ vậy các luồng của cùng một hướng không cắt ngang nhau.
+- `intersection.tll.xml` gán `linkIndex` cố định để chuỗi state đèn vẫn là 12 ký tự.
+
+Nếu sửa các file trong `network/`, cần biên dịch lại:
 
 ```bash
 netconvert -n network/intersection.nod.xml -e network/intersection.edg.xml \
+           -x network/intersection.con.xml -i network/intersection.tll.xml \
            --no-turnarounds true --tls.yellow.time 3 -o network/intersection.net.xml
 ```
 
-Nếu số làn hoặc số hướng thay đổi, cần cập nhật lại chuỗi `state` trong
+Cỏ và cây trên GUI nằm ở `network/decor.add.xml` (chỉ để trang trí); nếu đổi kích thước giao lộ thì
+sinh lại bằng `python scripts/generate_decor.py`.
+
+Nếu số hướng thay đổi, cần cập nhật lại chuỗi `state` trong
 `routes/intersection.tls.add.xml` và `APPROACH_LINKS` trong `scripts/tls_control.py`.

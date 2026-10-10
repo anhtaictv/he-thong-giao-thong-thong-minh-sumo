@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <nodes>
-    <node id="TL1" x="0" y="0" type="traffic_light"/>
-    <node id="N" x="0" y="200" type="priority"/>
-    <node id="S" x="0" y="-200" type="priority"/>
-    <node id="E" x="200" y="0" type="priority"/>
-    <node id="W" x="-200" y="0" type="priority"/>
+    <node id="TL1" x="0" y="0" type="traffic_light" radius="15"/>
+    <node id="N"  x="0" y="200" type="priority"/>
+    <node id="N1" x="0" y="100" type="priority"/>   <!-- cách tâm 100m: hết làn theo loại xe -->
+    <node id="S"  x="0" y="-200" type="priority"/>
+    <node id="S1" x="0" y="-100" type="priority"/>   <!-- cách tâm 100m: hết làn theo loại xe -->
+    <node id="E"  x="200" y="0" type="priority"/>
+    <node id="E1" x="100" y="0" type="priority"/>   <!-- cách tâm 100m: hết làn theo loại xe -->
+    <node id="W"  x="-200" y="0" type="priority"/>
+    <node id="W1" x="-100" y="0" type="priority"/>   <!-- cách tâm 100m: hết làn theo loại xe -->
 </nodes>

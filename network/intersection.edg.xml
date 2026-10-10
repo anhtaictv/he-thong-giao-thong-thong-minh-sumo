@@ -1,11 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <edges>
-    <edge id="N_in"  from="N"   to="TL1" numLanes="1" speed="13.9"/>
-    <edge id="N_out" from="TL1" to="N"   numLanes="1" speed="13.9"/>
-    <edge id="S_in"  from="S"   to="TL1" numLanes="1" speed="13.9"/>
-    <edge id="S_out" from="TL1" to="S"   numLanes="1" speed="13.9"/>
-    <edge id="E_in"  from="E"   to="TL1" numLanes="1" speed="13.9"/>
-    <edge id="E_out" from="TL1" to="E"   numLanes="1" speed="13.9"/>
-    <edge id="W_in"  from="W"   to="TL1" numLanes="1" speed="13.9"/>
-    <edge id="W_out" from="TL1" to="W"   numLanes="1" speed="13.9"/>
+    <!-- Mỗi chiều 3 làn (index 0 = làn ngoài cùng bên phải).
+         *_far_in / *_far_out (xa giao lộ, 100m): làn theo LOẠI XE
+             làn 0: xe máy | làn 1: ô tô con, taxi | làn 2: xe tải, xe buýt  (xe cứu thương đi mọi làn)
+         *_in / *_out (sát giao lộ, 100m): làn chung cho mọi xe, chia theo HƯỚNG RẼ
+             (xem intersection.con.xml) -> xe tự chuyển làn trước khi vào giao lộ, không cắt ngang nhau. -->
+    <edge id="N_far_in"  from="N"   to="N1"  numLanes="3" speed="13.9">
+        <lane index="0" allow="motorcycle emergency"/>
+        <lane index="1" allow="passenger taxi emergency"/>
+        <lane index="2" allow="truck bus emergency"/>
+    </edge>
+    <edge id="N_in"      from="N1"  to="TL1" numLanes="3" speed="13.9"/>
+    <edge id="N_out"     from="TL1" to="N1"  numLanes="3" speed="13.9"/>
+    <edge id="N_far_out" from="N1"  to="N"   numLanes="3" speed="13.9">
+        <lane index="0" allow="motorcycle emergency"/>
+        <lane index="1" allow="passenger taxi emergency"/>
+        <lane index="2" allow="truck bus emergency"/>
+    </edge>
+    <edge id="S_far_in"  from="S"   to="S1"  numLanes="3" speed="13.9">
+        <lane index="0" allow="motorcycle emergency"/>
+        <lane index="1" allow="passenger taxi emergency"/>
+        <lane index="2" allow="truck bus emergency"/>
+    </edge>
+    <edge id="S_in"      from="S1"  to="TL1" numLanes="3" speed="13.9"/>
+    <edge id="S_out"     from="TL1" to="S1"  numLanes="3" speed="13.9"/>
+    <edge id="S_far_out" from="S1"  to="S"   numLanes="3" speed="13.9">
+        <lane index="0" allow="motorcycle emergency"/>
+        <lane index="1" allow="passenger taxi emergency"/>
+        <lane index="2" allow="truck bus emergency"/>
+    </edge>
+    <edge id="E_far_in"  from="E"   to="E1"  numLanes="3" speed="13.9">
+        <lane index="0" allow="motorcycle emergency"/>
+        <lane index="1" allow="passenger taxi emergency"/>
+        <lane index="2" allow="truck bus emergency"/>
+    </edge>
+    <edge id="E_in"      from="E1"  to="TL1" numLanes="3" speed="13.9"/>
+    <edge id="E_out"     from="TL1" to="E1"  numLanes="3" speed="13.9"/>
+    <edge id="E_far_out" from="E1"  to="E"   numLanes="3" speed="13.9">
+        <lane index="0" allow="motorcycle emergency"/>
+        <lane index="1" allow="passenger taxi emergency"/>
+        <lane index="2" allow="truck bus emergency"/>
+    </edge>
+    <edge id="W_far_in"  from="W"   to="W1"  numLanes="3" speed="13.9">
+        <lane index="0" allow="motorcycle emergency"/>
+        <lane index="1" allow="passenger taxi emergency"/>
+        <lane index="2" allow="truck bus emergency"/>
+    </edge>
+    <edge id="W_in"      from="W1"  to="TL1" numLanes="3" speed="13.9"/>
+    <edge id="W_out"     from="TL1" to="W1"  numLanes="3" speed="13.9"/>
+    <edge id="W_far_out" from="W1"  to="W"   numLanes="3" speed="13.9">
+        <lane index="0" allow="motorcycle emergency"/>
+        <lane index="1" allow="passenger taxi emergency"/>
+        <lane index="2" allow="truck bus emergency"/>
+    </edge>
 </edges>

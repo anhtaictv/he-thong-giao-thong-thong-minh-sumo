@@ -49,9 +49,9 @@ Nguyên tắc thiết kế:
 
 | Thành phần | Mô tả |
 |---|---|
-| Nút | `TL1` (đèn tín hiệu) tại tâm; `N`, `S`, `E`, `W` cách 200 m |
-| Cạnh | `N_in/N_out`, `S_in/S_out`, `E_in/E_out`, `W_in/W_out` — 1 làn, 50 km/h |
-| Liên kết đèn | 12 link: mỗi hướng có rẽ phải / đi thẳng / rẽ trái (thứ tự N, E, S, W) |
+| Nút | `TL1` (đèn tín hiệu) tại tâm; `N1`, `S1`, `E1`, `W1` cách 100 m; `N`, `S`, `E`, `W` cách 200 m |
+| Cạnh | 3 làn, 50 km/h. `*_far_in/*_far_out` (xa giao lộ): làn theo loại xe — xe máy / ô tô, taxi / xe tải, buýt. `N_in/N_out`… (100 m sát giao lộ): làn chung theo hướng rẽ |
+| Liên kết đèn | 12 tín hiệu: mỗi hướng có rẽ phải / đi thẳng / rẽ trái (thứ tự N, E, S, W); 3 làn đi thẳng dùng chung 1 tín hiệu |
 | Chu kỳ đèn | Xanh B-N 42s → Vàng 3s → Đỏ toàn phần 2s → Xanh Đ-T 42s → Vàng 3s → Đỏ toàn phần 2s (94s) |
 | Phương tiện | 12 luồng × 3 xe = **36 xe** (sedan, SUV, taxi, xe tải, xe buýt, xe máy), đến theo phân phối Poisson |
 | Xe ưu tiên | 1 xe cứu thương (`vClass=emergency`), chỉ thêm trong kịch bản `emergency` / `demo` |
@@ -188,8 +188,7 @@ Nội dung video: giới thiệu → bình thường → tăng xanh → lệnh G
   qua `command_interface.set_validator(fn)`. Nên bổ sung xác thực nguồn lệnh, giới hạn tần suất
   và kiểm tra theo ngữ cảnh (ví dụ số xe đang chờ).
 - Cổng TCP chỉ lắng nghe trên `127.0.0.1` và chưa có xác thực, nên chỉ dùng trong môi trường thử nghiệm.
-- Mỗi nhánh có 1 làn và rẽ trái dùng "xanh phải nhường" (`g`). Có thể mở rộng thành nhiều làn
-  với pha rẽ trái riêng.
+- Rẽ trái dùng "xanh phải nhường" (`g`). Có thể thêm pha rẽ trái riêng.
 
 ## 9. Các thay đổi so với bản 0.1.0
 

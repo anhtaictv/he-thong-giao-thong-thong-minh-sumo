@@ -78,7 +78,7 @@ SCENARIOS = {
 
 def add_ambulance():
     if "amb_route" not in traci.route.getIDList():
-        traci.route.add("amb_route", ["E_in", "W_out"])
+        traci.route.add("amb_route", ["E_far_in", "E_in", "W_out", "W_far_out"])
     traci.vehicle.add("ambulance_1", "amb_route", typeID="ambulance", departSpeed="max")
     return {"ok": True, "message": "Xe cứu thương 'ambulance_1' xuất hiện ở hướng Đông"}
 

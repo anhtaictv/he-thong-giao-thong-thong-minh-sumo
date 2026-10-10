@@ -14,7 +14,7 @@ Video demo đầy đủ (2 phút 25 giây): [`media/demo.mp4`](media/demo.mp4)
 ## Kiến trúc
 
 ```
- network/*.nod.xml + *.edg.xml ──netconvert──► network/intersection.net.xml (giao lộ TL1)
+ network/*.nod/edg/con/tll.xml ──netconvert──► network/intersection.net.xml (giao lộ TL1)
  routes/intersection.rou.xml        (36 xe, 6 loại)            │
  routes/intersection.tls.add.xml    (chu kỳ đèn chỉnh được) ────┴─► intersection.sumocfg ─► SUMO / SUMO-GUI
                                                                                              ▲

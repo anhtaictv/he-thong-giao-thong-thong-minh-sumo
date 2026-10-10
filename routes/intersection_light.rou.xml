@@ -14,16 +14,16 @@
     <!-- 12 luồng = mọi cặp (hướng vào -> hướng ra), đi thẳng / rẽ trái / rẽ phải.
          LƯU Ý: period="exp(X)" trong SUMO nghĩa là X xe/GIÂY (phân phối Poisson),
          KHÔNG phải "1 xe mỗi X giây". exp(0.015) = trung bình 1 xe / ~67s mỗi luồng; number="3" -> tổng luôn = 36 xe. -->
-    <flow id="N_S" type="allTypes" from="N_in" to="S_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="N_E" type="allTypes" from="N_in" to="E_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="N_W" type="allTypes" from="N_in" to="W_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="S_N" type="allTypes" from="S_in" to="N_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="S_E" type="allTypes" from="S_in" to="E_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="S_W" type="allTypes" from="S_in" to="W_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="E_W" type="allTypes" from="E_in" to="W_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="E_N" type="allTypes" from="E_in" to="N_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="E_S" type="allTypes" from="E_in" to="S_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="W_E" type="allTypes" from="W_in" to="E_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="W_N" type="allTypes" from="W_in" to="N_out" begin="0" number="3" period="exp(0.015)"/>
-    <flow id="W_S" type="allTypes" from="W_in" to="S_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="N_S" type="allTypes" from="N_far_in" to="S_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="N_E" type="allTypes" from="N_far_in" to="E_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="N_W" type="allTypes" from="N_far_in" to="W_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="S_N" type="allTypes" from="S_far_in" to="N_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="S_E" type="allTypes" from="S_far_in" to="E_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="S_W" type="allTypes" from="S_far_in" to="W_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="E_W" type="allTypes" from="E_far_in" to="W_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="E_N" type="allTypes" from="E_far_in" to="N_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="E_S" type="allTypes" from="E_far_in" to="S_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="W_E" type="allTypes" from="W_far_in" to="E_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="W_N" type="allTypes" from="W_far_in" to="N_far_out" begin="0" number="3" period="exp(0.015)"/>
+    <flow id="W_S" type="allTypes" from="W_far_in" to="S_far_out" begin="0" number="3" period="exp(0.015)"/>
 </routes>
