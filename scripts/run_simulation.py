@@ -28,22 +28,25 @@ VIEW_SETTINGS = os.path.join(BASE_DIR, "view_settings.xml")
 MIN_VEHICLES, MAX_VEHICLES = 20, 50      # yêu cầu #3
 
 
-def build_cmd(gui=False, demo=False, delay=100, extra=()):
+def build_cmd(gui=False, demo=False, delay=100, extra=(), paused=False):
     binary = sumolib.checkBinary("sumo-gui" if gui else "sumo")
     cmd = [binary, "-c", CFG_DEMO if demo else CFG, "--no-step-log", "true",
            "--collision.check-junctions", "true", "--collision.action", "warn"]
     if gui:
-        cmd += ["--start", "true", "--quit-on-end", "true", "--delay", str(delay),
+        cmd += ["--start", str(not paused).lower(), "--quit-on-end", "true", "--delay", str(delay),
                 "--gui-settings-file", VIEW_SETTINGS]
     return cmd + list(extra)
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")   # in tiếng Việt không cần PYTHONUTF8=1
     p = argparse.ArgumentParser(description="Mô phỏng giao lộ thông minh TL1 (SUMO + TraCI)")
     p.add_argument("--scenario", choices=list(scenarios.SCENARIOS), default="normal")
     p.add_argument("--gui", action="store_true", help="mở SUMO-GUI")
     p.add_argument("--light", "--demo", dest="demo", action="store_true",
                    help="dùng intersection_light.sumocfg (36 xe dồn trong ~4 phút, hợp để xem/quay video)")
+    p.add_argument("--paused", action="store_true",
+                   help="mở SUMO-GUI nhưng chờ bấm nút Play (▶) mới chạy")
     p.add_argument("--delay", type=int, default=100, help="độ trễ mỗi bước của SUMO-GUI (ms)")
     p.add_argument("--server", action="store_true",
                    help="bật cổng nhận lệnh TCP (tự bật với --scenario interactive)")
@@ -64,7 +67,7 @@ def main():
     if args.unsafe:
         print("*** CẢNH BÁO: safety guard đang TẮT (--unsafe) ***")
 
-    traci.start(build_cmd(args.gui, args.demo, args.delay))
+    traci.start(build_cmd(args.gui, args.demo, args.delay, paused=args.paused))
     # Kích hoạt chương trình đèn chỉnh sửa được (routes/intersection.tls.add.xml, yêu cầu #5)
     traci.trafficlight.setProgram("TL1", "1")
     if args.gui:

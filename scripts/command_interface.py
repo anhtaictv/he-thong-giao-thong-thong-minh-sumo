@@ -133,7 +133,7 @@ class CommandServer:
     def _read(self, conn, addr):
         try:
             chunk = conn.recv(4096)
-        except (ConnectionResetError, BlockingIOError):
+        except OSError:  # reset/aborted (WinError 10053)/blocking — chỉ bỏ kết nối này
             chunk = b""
         if not chunk:
             self._drop(conn)
